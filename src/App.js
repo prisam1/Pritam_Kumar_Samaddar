@@ -1,36 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share';
-import { FaFacebook, FaTwitter, FaWhatsapp } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react'
+import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share'
+import { FaFacebook, FaTwitter, FaWhatsapp } from 'react-icons/fa'
 import "./App.css"
 
-const getRandomImage = async () => {
-  const response = await fetch('https://api.unsplash.com/photos/random?client_id=LqzS6iYTqv2QxPqhQu4fp7Fzl9pmyhXbWOBxjpiG7NQ');
-  const data = await response.json();
-  return data.urls.regular;
-};
+class ImageLoader {
+  constructor(apiKey) {
+    this.apiKey = apiKey
+  }
 
-const ShareButton = ({ shareUrl, shareImage }) => {
+  async getRandomImage() {
+    const response = await fetch(`https://api.unsplash.com/photos/random?client_id=${this.apiKey}`)
+    const data = await response.json()
+    return data.urls.regular
+  }
+}
+
+class ShareButton {
+  constructor(shareUrl, shareImage) {
+    this.shareUrl = shareUrl
+    this.shareImage = shareImage
+  }
+  render(){
   return (
     <div className="share-buttons">
-      <FacebookShareButton url={shareUrl} imageUrl={shareImage}>
+      <FacebookShareButton url={this.shareUrl} imageUrl={this.shareImage}>
         <FaFacebook size={30} className="fb"/>
       </FacebookShareButton>
-      <TwitterShareButton url={shareUrl} imageUrl={shareImage}>
+      <TwitterShareButton url={this.shareUrl} imageUrl={this.shareImage}>
         <FaTwitter size={30} className="tt"/>
       </TwitterShareButton>
-      <WhatsappShareButton url={shareUrl} imageUrl={shareImage}>
+      <WhatsappShareButton url={this.shareUrl} imageUrl={this.shareImage}>
         <FaWhatsapp size={30} className="wa" />
       </WhatsappShareButton>
     </div>
   )
-}
+}}
 
 const App = () => {
   const [image, setImage] = useState('')
 
   useEffect(() => {
+    
+    const imageLoader = new ImageLoader('LqzS6iYTqv2QxPqhQu4fp7Fzl9pmyhXbWOBxjpiG7NQ')
+    
     const fetchRandomImage = async () => {
-      const randomImage = await getRandomImage()
+      const randomImage = await imageLoader.getRandomImage()
       setImage(randomImage)
 
       const ogMeta = document.createElement('meta')
@@ -38,15 +52,10 @@ const App = () => {
       ogMeta.setAttribute('content', randomImage)
       document.head.appendChild(ogMeta)
 
-      const twitterMeta1 = document.createElement('meta')
-      twitterMeta1.setAttribute('name', 'twitter:card')
-      twitterMeta1.setAttribute('content', 'summary_large_image')
-      document.head.appendChild(twitterMeta1)
-
-      const twitterMeta2 = document.createElement('meta')
-      twitterMeta2.setAttribute('name', 'twitter:image')
-      twitterMeta2.setAttribute('content', randomImage)
-      document.head.appendChild(twitterMeta2)
+      const twitterMeta = document.createElement('meta')
+      twitterMeta.setAttribute('name', 'twitter:image')
+      twitterMeta.setAttribute('content', randomImage)
+      document.head.appendChild(twitterMeta)
 
       const whatsappMeta = document.createElement('meta')
       whatsappMeta.setAttribute('property', 'og:image')
@@ -58,12 +67,13 @@ const App = () => {
   }, [])
 
   const shareUrl = window.location.href
+  const shareButton = new ShareButton(shareUrl, image)
 
   return (
     <div className="container">
       <img src={image} alt="Random" className="image" />
-      <ShareButton shareUrl={shareUrl} shareImage={image} />
-    </div>
+      {shareButton.render()}
+      </div>
   )
 } 
 
