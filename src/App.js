@@ -1,29 +1,42 @@
+
 import React, { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet'
 import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share'
 import { FaFacebook, FaTwitter, FaWhatsapp } from 'react-icons/fa'
-import "./App.css"
+import axios from 'axios'
+import './App.css'
 
-class ImageLoader {
+class UnsplashImageLoader {
   constructor(apiKey) {
     this.apiKey = apiKey
   }
 
   async getRandomImage() {
-    const response = await fetch(`https://api.unsplash.com/photos/random?client_id=${this.apiKey}`)
-    const data = await response.json()
-    return data.urls.regular
+    try {
+      const response = await axios.get('https://api.unsplash.com/photos/random', {
+        headers: {
+          Authorization: `Client-ID ${this.apiKey}`,
+        },
+      })
+
+      return response.data.urls.regular
+    } catch (error) {
+      console.error('Error fetching image:', error)
+    }
+    return null
   }
 }
 
 class ShareButton {
-  constructor(shareUrl, shareImage) {
+   constructor(shareUrl, shareImage) {
     this.shareUrl = shareUrl
     this.shareImage = shareImage
   }
-  render(){
-  return (
-    <div className="share-buttons">
-      <FacebookShareButton url={this.shareUrl} imageUrl={this.shareImage}>
+
+  render() {
+    return (
+      <div className="share-buttons">
+         <FacebookShareButton url={this.shareUrl} imageUrl={this.shareImage}>
         <FaFacebook size={30} className="fb"/>
       </FacebookShareButton>
       <TwitterShareButton url={this.shareUrl} imageUrl={this.shareImage}>
@@ -32,50 +45,65 @@ class ShareButton {
       <WhatsappShareButton url={this.shareUrl} imageUrl={this.shareImage}>
         <FaWhatsapp size={30} className="wa" />
       </WhatsappShareButton>
-    </div>
-  )
-}}
-
-const App = () => {
-  const [image, setImage] = useState('')
-
-  useEffect(() => {
     
-    const imageLoader = new ImageLoader('LqzS6iYTqv2QxPqhQu4fp7Fzl9pmyhXbWOBxjpiG7NQ')
-    
-    const fetchRandomImage = async () => {
-      const randomImage = await imageLoader.getRandomImage()
-      setImage(randomImage)
-
-      const ogMeta = document.createElement('meta')
-      ogMeta.setAttribute('property', 'og:image')
-      ogMeta.setAttribute('content', randomImage)
-      document.head.appendChild(ogMeta)
-
-      const twitterMeta = document.createElement('meta')
-      twitterMeta.setAttribute('name', 'twitter:image')
-      twitterMeta.setAttribute('content', randomImage)
-      document.head.appendChild(twitterMeta)
-
-      const whatsappMeta = document.createElement('meta')
-      whatsappMeta.setAttribute('property', 'og:image')
-      whatsappMeta.setAttribute('content', randomImage)
-      document.head.appendChild(whatsappMeta)
-    }
-
-    fetchRandomImage()
-  }, [])
-
-  const shareUrl = window.location.href
-  const shareButton = new ShareButton(shareUrl, image)
-
-  return (
-    <div className="container">
-      <img src={image} alt="Random" className="image" />
-      {shareButton.render()}
       </div>
-  )
-} 
+    )
+  }
+}
+
+  const App = () => {
+    const [image, setImage] = useState('')
+  
+    useEffect(() => {
+      const imageLoader = new UnsplashImageLoader('LqzS6iYTqv2QxPqhQu4fp7Fzl9pmyhXbWOBxjpiG7NQ')
+  
+      const fetchRandomImage = async () => {
+        try {
+          const randomImage = await imageLoader.getRandomImage()
+          setImage(randomImage)
+          
+        } catch (error) {
+          console.error('Error fetching image:', error)
+        }
+      }
+  
+      fetchRandomImage()
+    }, [])
+   
+
+    const title = 'Random'
+    const description = 'Anything'
+    const shareUrl = window.location.href
+    const shareButton = new ShareButton(shareUrl, image)
+
+    return (
+      <>
+        <Helmet>
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+   
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:secure_url" content={image} />
+
+   
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:secure_url" content={image} />
+        </Helmet>
+        <div className="container">
+         
+              <img src={image} alt="Random" className="image" />
+              {shareButton.render()}        
+          </div>
+      </>
+    )
+  }
+
 
 export default App
-
