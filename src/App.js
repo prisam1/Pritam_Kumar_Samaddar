@@ -11,13 +11,13 @@
                   
                       return (
                         <div className="share-buttons">
-                          <FacebookShareButton url={shareUrl} quote="Check out this random image">
+                          <FacebookShareButton url={shareUrl}>
                             <FaFacebook size={30} className="fb" />
                           </FacebookShareButton>
-                          <TwitterShareButton url={shareUrl} title="Random Image" via="your_twitter_handle">
+                          <TwitterShareButton url={shareUrl}>
                             <FaTwitter size={30} className="tt" />
                           </TwitterShareButton>
-                          <WhatsappShareButton url={shareUrl} title="Check out this random image: ">
+                          <WhatsappShareButton url={shareUrl} >
                             <FaWhatsapp size={30} className="wa" />
                           </WhatsappShareButton>
                         </div>
@@ -52,7 +52,7 @@
                   
                     renderMetaTags = () => {
                       const { image } = this.state;
-                      const shareUrl = 'https://example.com';
+                      const shareUrl = window.location.href;
                   
                       const metaTags = [
                         { property: 'og:title', content: 'Random Image' },
@@ -83,7 +83,7 @@
                   
                     render() {
                       const { image } = this.state;
-                      const shareUrl = 'https://example.com';
+                      const shareUrl = window.location.href;
                   
                       return (
                         <div className="container">
