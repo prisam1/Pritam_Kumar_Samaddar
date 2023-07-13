@@ -1,99 +1,105 @@
 
- 
-                  import React from 'react';
-                  import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share';
-                  import { FaFacebook, FaTwitter, FaWhatsapp } from 'react-icons/fa';
-                  import axios from 'axios';
-                  import './App.css'
-                  class ShareButtons extends React.Component {
-                    render() {
-                      const { shareUrl} = this.props;
-                  
-                      return (
-                        <div className="share-buttons">
-                          <FacebookShareButton url={shareUrl}>
-                            <FaFacebook size={30} className="fb" />
-                          </FacebookShareButton>
-                          <TwitterShareButton url={shareUrl}>
-                            <FaTwitter size={30} className="tt" />
-                          </TwitterShareButton>
-                          <WhatsappShareButton url={shareUrl} >
-                            <FaWhatsapp size={30} className="wa" />
-                          </WhatsappShareButton>
-                        </div>
-                      );
-                    }
-                  }
-                  
-                  class App extends React.Component {
-                    constructor(props) {
-                      super(props);
-                      this.state = {
-                        image: '',
-                      };
-                    }
-                  
-                    componentDidMount() {
-                      this.fetchRandomImage();
-                    }
-                  
-                    fetchRandomImage = async () => {
-                      try {
-                        const response = await axios.get('https://api.unsplash.com/photos/random', {
-                          headers: {
-                            Authorization: 'Client-ID LqzS6iYTqv2QxPqhQu4fp7Fzl9pmyhXbWOBxjpiG7NQ',
-                          },
-                        });
-                        this.setState({ image: response.data.urls.regular });
-                      } catch (error) {
-                        console.error('Error fetching image:', error);
-                      }
-                    };
-                  
-                    renderMetaTags = () => {
-                      const { image } = this.state;
-                      const shareUrl = window.location.href;
-                  
-                      const metaTags = [
-                        { property: 'og:title', content: 'Random Image' },
-                        { property: 'og:description', content: 'Check out this random image' },
-                        { property: 'og:image', content: image },
-                        { property: 'og:image:secure_url', content: image },
-                        { property: 'og:type', content: 'website' },
-                        { property: 'og:url', content: shareUrl },
-                        { name: 'twitter:card', content: 'summary_large_image' },
-                        { name: 'twitter:title', content: 'Random Image' },
-                        { name: 'twitter:description', content: 'Check out this random image' },
-                        { name: 'twitter:image', content: image },
-                      ];
-                  
-                      return metaTags.map(({ name, property, content }) => {
-                        const tag = name ? document.querySelector(`meta[name="${name}"]`) : document.querySelector(`meta[property="${property}"]`);
-                        if (tag) {
-                          tag.setAttribute('content', content);
-                        } else {
-                          const newTag = document.createElement('meta');
-                          newTag.setAttribute(name ? 'name' : 'property', name || property);
-                          newTag.setAttribute('content', content);
-                          document.head.appendChild(newTag);
-                        }
-                        return null;
-                      });
-                    };
-                  
-                    render() {
-                      const { image } = this.state;
-                      const shareUrl = window.location.href;
-                  
-                      return (
-                        <div className="container">
-                          {image && <img src={image} alt="Random" className="image" />}
-                          <ShareButtons shareUrl={shareUrl} shareImage={image} />
-                          {this.renderMetaTags()}
-                        </div>
-                      );
-                    }
-                  }
-                  
-                  export default App;
-                          
+import React, { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet'
+import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share'
+import { FaFacebook, FaTwitter, FaWhatsapp } from 'react-icons/fa'
+import axios from 'axios'
+import './App.css'
+
+class UnsplashImageLoader {
+  constructor(apiKey) {
+    this.apiKey = apiKey
+  }
+
+  async getRandomImage() {
+    try {
+      const response = await axios.get('https://api.unsplash.com/photos/random', {
+        headers: {
+          Authorization: `Client-ID ${this.apiKey}`,
+        },
+      })
+
+      return response.data.urls.regular
+    } catch (error) {
+      console.error('Error fetching image:', error)
+    }
+    return null
+  }
+}
+
+class ShareButton {
+   constructor(shareUrl, shareImage) {
+    this.shareUrl = shareUrl
+    this.shareImage = shareImage
+  }
+
+  render() {
+    return (
+      <div className="share-buttons">
+         <FacebookShareButton url={this.shareUrl} imageUrl={this.shareImage}>
+        <FaFacebook size={30} className="fb"/>
+      </FacebookShareButton>
+      <TwitterShareButton url={this.shareUrl} imageUrl={this.shareImage}>
+        <FaTwitter size={30} className="tt"/>
+      </TwitterShareButton>
+      <WhatsappShareButton url={this.shareUrl} imageUrl={this.shareImage}>
+        <FaWhatsapp size={30} className="wa" />
+      </WhatsappShareButton>
+    
+      </div>
+    )
+  }
+}
+
+  const App = () => {
+    const [image, setImage] = useState('')
+  
+    useEffect(() => {
+      const imageLoader = new UnsplashImageLoader('LqzS6iYTqv2QxPqhQu4fp7Fzl9pmyhXbWOBxjpiG7NQ')
+  
+      const fetchRandomImage = async () => {
+        try {
+          const randomImage = await imageLoader.getRandomImage()
+          setImage(randomImage)
+          
+        } catch (error) {
+          console.error('Error fetching image:', error)
+        }
+      }
+  
+      fetchRandomImage()
+    }, [])
+   
+
+    const title = 'Random'
+    const description = 'Anything'
+    const shareUrl = window.location.href
+    const shareButton = new ShareButton(shareUrl, image)
+
+    return (
+      <>
+        <Helmet>
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <meta property="og:image:url" content={image} />
+
+   
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:secure_url" content={image} />
+
+       </Helmet>
+        <div className="container">
+         
+              <img src={image} alt="Random" className="image" />
+              {shareButton.render()}        
+          </div>
+      </>
+    )
+  }
+
+
+export default App
